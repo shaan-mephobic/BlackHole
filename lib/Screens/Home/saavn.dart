@@ -1,13 +1,12 @@
+import 'package:blackhole/APIs/api.dart';
 import 'package:blackhole/CustomWidgets/snackbar.dart';
+import 'package:blackhole/Helpers/format.dart';
+import 'package:blackhole/Screens/Common/song_list.dart';
+import 'package:blackhole/Screens/Player/audioplayer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-
-import 'package:blackhole/APIs/api.dart';
-import 'package:blackhole/Helpers/format.dart';
-import 'package:blackhole/Screens/Common/song_list.dart';
-import 'package:blackhole/Screens/Player/audioplayer.dart';
 
 bool fetched = false;
 List preferredLanguage = Hive.box('settings')
@@ -107,9 +106,9 @@ class _SaavnHomePageState extends State<SaavnHomePage>
                             child: Text(
                               'Last Session',
                               style: TextStyle(
-                                color: Theme.of(context).accentColor,
+                                color: Theme.of(context).colorScheme.secondary,
                                 fontSize: 18,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -209,6 +208,9 @@ class _SaavnHomePageState extends State<SaavnHomePage>
                                       textAlign: TextAlign.center,
                                       softWrap: false,
                                       overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                     Text(
                                       '${recentList[index]["artist"]}',
@@ -242,9 +244,9 @@ class _SaavnHomePageState extends State<SaavnHomePage>
                       formatString(
                           data['modules'][lists[idx]]?['title']?.toString()),
                       style: TextStyle(
-                        color: Theme.of(context).accentColor,
+                        color: Theme.of(context).colorScheme.secondary,
                         fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -427,6 +429,9 @@ class _SaavnHomePageState extends State<SaavnHomePage>
                                     textAlign: TextAlign.center,
                                     softWrap: false,
                                     overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                   if (subTitle != '')
                                     Text(

@@ -1,4 +1,12 @@
+import 'package:blackhole/CustomWidgets/gradient_containers.dart';
+import 'package:blackhole/CustomWidgets/snackbar.dart';
 import 'package:blackhole/CustomWidgets/textinput_dialog.dart';
+import 'package:blackhole/Helpers/config.dart';
+import 'package:blackhole/Helpers/countrycodes.dart';
+import 'package:blackhole/Helpers/picker.dart';
+import 'package:blackhole/Helpers/supabase.dart';
+import 'package:blackhole/Screens/Home/saavn.dart' as home_screen;
+import 'package:blackhole/Screens/Top Charts/top.dart' as top_screen;
 import 'package:ext_storage/ext_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,15 +17,6 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:package_info/package_info.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:blackhole/CustomWidgets/gradient_containers.dart';
-import 'package:blackhole/CustomWidgets/snackbar.dart';
-import 'package:blackhole/Helpers/config.dart';
-import 'package:blackhole/Helpers/countrycodes.dart';
-import 'package:blackhole/Helpers/picker.dart';
-import 'package:blackhole/Helpers/supabase.dart';
-import 'package:blackhole/Screens/Home/saavn.dart' as home_screen;
-import 'package:blackhole/Screens/Top Charts/top.dart' as top_screen;
 
 class SettingPage extends StatefulWidget {
   final Function? callback;
@@ -110,7 +109,7 @@ class _SettingPageState extends State<SettingPage> {
           stretch: true,
           pinned: true,
           backgroundColor: Theme.of(context).brightness == Brightness.light
-              ? Theme.of(context).accentColor
+              ? Theme.of(context).colorScheme.secondary
               : null,
           expandedHeight: MediaQuery.of(context).size.height / 4.5,
           flexibleSpace: FlexibleSpaceBar(
@@ -147,7 +146,7 @@ class _SettingPageState extends State<SettingPage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).accentColor,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
               ),
@@ -175,7 +174,7 @@ class _SettingPageState extends State<SettingPage> {
                             width: 25,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(100.0),
-                              color: Theme.of(context).accentColor,
+                              color: Theme.of(context).colorScheme.secondary,
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.grey[900]!,
@@ -209,6 +208,7 @@ class _SettingPageState extends State<SettingPage> {
                                 'Deep Orange',
                                 'Red',
                                 'Pink',
+                                'White',
                               ];
                               return BottomGradientContainer(
                                 borderRadius: BorderRadius.circular(20.0),
@@ -302,7 +302,8 @@ class _SettingPageState extends State<SettingPage> {
                                   width: 25,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(100.0),
-                                    color: Theme.of(context).accentColor,
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
                                     gradient: LinearGradient(
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
@@ -413,7 +414,8 @@ class _SettingPageState extends State<SettingPage> {
                                   width: 25,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(100.0),
-                                    color: Theme.of(context).accentColor,
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
                                     gradient: LinearGradient(
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
@@ -525,7 +527,8 @@ class _SettingPageState extends State<SettingPage> {
                                   width: 25,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(100.0),
-                                    color: Theme.of(context).accentColor,
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
                                     gradient: LinearGradient(
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
@@ -709,6 +712,30 @@ class _SettingPageState extends State<SettingPage> {
                         isThreeLine: true,
                       ),
                       ListTile(
+                          title: const Text('Use Amoled Dark Mode Settings'),
+                          dense: true,
+                          onTap: () {
+                            currentTheme.switchTheme(isDark: true);
+                            Hive.box('settings').put('darkMode', true);
+
+                            settingsBox.put('backGrad', 4);
+                            currentTheme.backGrad = 4;
+                            settingsBox.put('cardGrad', 6);
+                            currentTheme.cardGrad = 6;
+                            settingsBox.put('bottomGrad', 4);
+                            currentTheme.bottomGrad = 4;
+
+                            currentTheme.switchCanvasColor('Black');
+                            canvasColor = 'Black';
+
+                            currentTheme.switchCardColor('Grey900');
+                            cardColor = 'Grey900';
+
+                            themeColor = 'White';
+                            colorHue = 400;
+                            currentTheme.switchColor('White', colorHue);
+                          }),
+                      ListTile(
                           title: const Text('Change to Default'),
                           dense: true,
                           onTap: () {
@@ -725,13 +752,11 @@ class _SettingPageState extends State<SettingPage> {
                             canvasColor = 'Grey';
 
                             currentTheme.switchCardColor('Grey850');
-                            cardColor = 'Grey900';
+                            cardColor = 'Grey850';
 
                             themeColor = 'Teal';
                             colorHue = 400;
                             currentTheme.switchTheme(isDark: true);
-                            setState(() {});
-                            widget.callback!();
                           }),
                     ],
                   ),
@@ -744,7 +769,7 @@ class _SettingPageState extends State<SettingPage> {
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).accentColor),
+                      color: Theme.of(context).colorScheme.secondary),
                 ),
               ),
               Padding(
@@ -793,7 +818,8 @@ class _SettingPageState extends State<SettingPage> {
                                               itemBuilder: (context, idx) {
                                                 return CheckboxListTile(
                                                   activeColor: Theme.of(context)
-                                                      .accentColor,
+                                                      .colorScheme
+                                                      .secondary,
                                                   value: checked
                                                       .contains(languages[idx]),
                                                   title: Text(languages[idx]),
@@ -815,7 +841,8 @@ class _SettingPageState extends State<SettingPage> {
                                             TextButton(
                                               style: TextButton.styleFrom(
                                                 primary: Theme.of(context)
-                                                    .accentColor,
+                                                    .colorScheme
+                                                    .secondary,
                                               ),
                                               onPressed: () {
                                                 Navigator.pop(context);
@@ -825,7 +852,8 @@ class _SettingPageState extends State<SettingPage> {
                                             TextButton(
                                               style: TextButton.styleFrom(
                                                 primary: Theme.of(context)
-                                                    .accentColor,
+                                                    .colorScheme
+                                                    .secondary,
                                               ),
                                               onPressed: () {
                                                 setState(() {
@@ -895,8 +923,9 @@ class _SettingPageState extends State<SettingPage> {
                                         itemCount: countries.length,
                                         itemBuilder: (context, idx) {
                                           return ListTileTheme(
-                                            selectedColor:
-                                                Theme.of(context).accentColor,
+                                            selectedColor: Theme.of(context)
+                                                .colorScheme
+                                                .secondary,
                                             child: ListTile(
                                               contentPadding:
                                                   const EdgeInsets.only(
@@ -1079,7 +1108,7 @@ class _SettingPageState extends State<SettingPage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).accentColor,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
               ),
@@ -1194,7 +1223,7 @@ class _SettingPageState extends State<SettingPage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).accentColor,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
               ),
@@ -1311,7 +1340,8 @@ class _SettingPageState extends State<SettingPage> {
                                           'IP Address',
                                           style: TextStyle(
                                               color: Theme.of(context)
-                                                  .accentColor),
+                                                  .colorScheme
+                                                  .secondary),
                                         ),
                                       ],
                                     ),
@@ -1328,7 +1358,8 @@ class _SettingPageState extends State<SettingPage> {
                                           'Port',
                                           style: TextStyle(
                                               color: Theme.of(context)
-                                                  .accentColor),
+                                                  .colorScheme
+                                                  .secondary),
                                         ),
                                       ],
                                     ),
@@ -1355,8 +1386,9 @@ class _SettingPageState extends State<SettingPage> {
                                   TextButton(
                                     style: TextButton.styleFrom(
                                       primary: Colors.white,
-                                      backgroundColor:
-                                          Theme.of(context).accentColor,
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .secondary,
                                     ),
                                     onPressed: () {
                                       settingsBox.put(
@@ -1391,7 +1423,7 @@ class _SettingPageState extends State<SettingPage> {
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).accentColor),
+                      color: Theme.of(context).colorScheme.secondary),
                 ),
               ),
               Padding(
@@ -1411,7 +1443,8 @@ class _SettingPageState extends State<SettingPage> {
                                 context,
                                 'Update Available!',
                                 action: SnackBarAction(
-                                  textColor: Theme.of(context).accentColor,
+                                  textColor:
+                                      Theme.of(context).colorScheme.secondary,
                                   label: 'Update',
                                   onPressed: () {
                                     launch(value['LatestUrl'].toString());
@@ -1681,7 +1714,7 @@ class BoxSwitchTile extends StatelessWidget {
         valueListenable: Hive.box('settings').listenable(),
         builder: (BuildContext context, Box box, Widget? widget) {
           return SwitchListTile(
-              activeColor: Theme.of(context).accentColor,
+              activeColor: Theme.of(context).colorScheme.secondary,
               title: title,
               subtitle: subtitle,
               isThreeLine: isThreeLine ?? false,

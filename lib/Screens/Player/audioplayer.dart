@@ -3,7 +3,19 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:blackhole/CustomWidgets/add_playlist.dart';
+import 'package:blackhole/CustomWidgets/download_button.dart';
+import 'package:blackhole/CustomWidgets/empty_screen.dart';
+import 'package:blackhole/CustomWidgets/equalizer.dart';
+import 'package:blackhole/CustomWidgets/gradient_containers.dart';
+import 'package:blackhole/CustomWidgets/like_button.dart';
+import 'package:blackhole/CustomWidgets/seek_bar.dart';
+import 'package:blackhole/CustomWidgets/snackbar.dart';
+import 'package:blackhole/CustomWidgets/textinput_dialog.dart';
 import 'package:blackhole/Helpers/config.dart';
+import 'package:blackhole/Helpers/lyrics.dart';
+import 'package:blackhole/Helpers/mediaitem_converter.dart';
+import 'package:blackhole/main.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,19 +29,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:blackhole/CustomWidgets/add_playlist.dart';
-import 'package:blackhole/CustomWidgets/download_button.dart';
-import 'package:blackhole/CustomWidgets/empty_screen.dart';
-import 'package:blackhole/CustomWidgets/equalizer.dart';
-import 'package:blackhole/CustomWidgets/gradient_containers.dart';
-import 'package:blackhole/CustomWidgets/like_button.dart';
-import 'package:blackhole/CustomWidgets/seek_bar.dart';
-import 'package:blackhole/CustomWidgets/snackbar.dart';
-import 'package:blackhole/CustomWidgets/textinput_dialog.dart';
-import 'package:blackhole/Helpers/lyrics.dart';
-import 'package:blackhole/Helpers/mediaitem_converter.dart';
-import 'package:blackhole/main.dart';
 
 class PlayScreen extends StatefulWidget {
   final Map data;
@@ -62,6 +61,7 @@ class _PlayScreenState extends State<PlayScreen> {
   List response = [];
   bool fetched = false;
   bool offline = false;
+  bool downloaded = false;
   bool fromYT = false;
   String defaultCover = '';
   final ValueNotifier<Color?> gradientColor =
@@ -104,8 +104,8 @@ class _PlayScreenState extends State<PlayScreen> {
     String? filePath;
     if (response['image'] != null) {
       try {
-        final File file = File(
-            '${tempDir.path}/${playTitle.toString().replaceAll('/', '')}-${playArtist.toString().replaceAll('/', '')}.jpg');
+        final File file =
+            File('${tempDir.path}/${response["_display_name_wo_ext"]}.jpg');
         filePath = file.path;
         if (!await file.exists()) {
           await file.create();
@@ -142,7 +142,7 @@ class _PlayScreenState extends State<PlayScreen> {
     return file.path;
   }
 
-  void setOffValues(List response) {
+  void setOffValues(List response, {bool downloaed = false}) {
     getTemporaryDirectory().then((tempDir) async {
       final File file =
           File('${(await getTemporaryDirectory()).path}/cover.jpg');
@@ -154,8 +154,18 @@ class _PlayScreenState extends State<PlayScreen> {
       for (int i = 0; i < response.length; i++) {
         globalQueue.add(await setTags(response[i] as Map, tempDir));
       }
+      fetched = true;
       updateNplay();
     });
+  }
+
+  void setDownValues(List response) {
+    globalQueue.addAll(
+      response
+          .map((song) => MediaItemConverter().downMapToMediaItem(song as Map)),
+    );
+    fetched = true;
+    updateNplay();
   }
 
   void setValues(List response) {
@@ -196,6 +206,7 @@ class _PlayScreenState extends State<PlayScreen> {
     response = data['response'] as List;
     globalIndex = data['index'] as int;
     fromYT = data['fromYT'] as bool? ?? false;
+    downloaded = data['downloaded'] as bool? ?? false;
     if (data['offline'] == null) {
       if (audioHandler.mediaItem.value?.extras!['url'].startsWith('http')
           as bool) {
@@ -218,7 +229,7 @@ class _PlayScreenState extends State<PlayScreen> {
         shuffle = false;
         Hive.box('settings').put('shuffle', shuffle);
         if (offline) {
-          setOffValues(response);
+          downloaded ? setDownValues(response) : setOffValues(response);
         } else {
           setValues(response);
           updateNplay();
@@ -340,8 +351,9 @@ class _PlayScreenState extends State<PlayScreen> {
                                         title: Text(
                                           'Sleep Timer',
                                           style: TextStyle(
-                                            color:
-                                                Theme.of(context).accentColor,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .secondary,
                                           ),
                                         ),
                                         contentPadding:
@@ -385,15 +397,12 @@ class _PlayScreenState extends State<PlayScreen> {
                                       PopupMenuItem(
                                           value: 1,
                                           child: Row(
-                                            children: [
+                                            children: const [
                                               Icon(
                                                 CupertinoIcons.timer,
-                                                color: Theme.of(context)
-                                                    .iconTheme
-                                                    .color,
                                               ),
-                                              const SizedBox(width: 10.0),
-                                              const Text('Sleep Timer'),
+                                              SizedBox(width: 10.0),
+                                              Text('Sleep Timer'),
                                             ],
                                           )),
                                       if (Hive.box('settings').get('supportEq',
@@ -401,15 +410,12 @@ class _PlayScreenState extends State<PlayScreen> {
                                         PopupMenuItem(
                                             value: 4,
                                             child: Row(
-                                              children: [
+                                              children: const [
                                                 Icon(
                                                   Icons.equalizer_rounded,
-                                                  color: Theme.of(context)
-                                                      .iconTheme
-                                                      .color,
                                                 ),
-                                                const SizedBox(width: 10.0),
-                                                const Text('Equalizer'),
+                                                SizedBox(width: 10.0),
+                                                Text('Equalizer'),
                                               ],
                                             )),
                                     ]
@@ -549,7 +555,7 @@ class _PlayScreenState extends State<PlayScreen> {
             'Select a Duration',
             style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).accentColor),
+                color: Theme.of(context).colorScheme.secondary),
           )),
           children: [
             Center(
@@ -558,11 +564,11 @@ class _PlayScreenState extends State<PlayScreen> {
               width: 200,
               child: CupertinoTheme(
                 data: CupertinoThemeData(
-                  primaryColor: Theme.of(context).accentColor,
+                  primaryColor: Theme.of(context).colorScheme.secondary,
                   textTheme: CupertinoTextThemeData(
                     dateTimePickerTextStyle: TextStyle(
                       fontSize: 16,
-                      color: Theme.of(context).accentColor,
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
                   ),
                 ),
@@ -579,7 +585,7 @@ class _PlayScreenState extends State<PlayScreen> {
               children: [
                 TextButton(
                   style: TextButton.styleFrom(
-                    primary: Theme.of(context).accentColor,
+                    primary: Theme.of(context).colorScheme.secondary,
                   ),
                   onPressed: () {
                     sleepTimer(0);
@@ -593,7 +599,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 TextButton(
                   style: TextButton.styleFrom(
                     primary: Colors.white,
-                    backgroundColor: Theme.of(context).accentColor,
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
                   ),
                   onPressed: () {
                     sleepTimer(_time.inMinutes);
@@ -689,6 +695,7 @@ class ControlButtons extends StatelessWidget {
                 icon: const Icon(Icons.skip_previous_rounded),
                 iconSize: miniplayer ? 24.0 : 45.0,
                 tooltip: 'Skip Previous',
+                color: Theme.of(context).iconTheme.color,
                 onPressed:
                     queueState.hasPrevious ? audioHandler.skipToPrevious : null,
               );
@@ -727,6 +734,7 @@ class ControlButtons extends StatelessWidget {
                                     icon: const Icon(
                                       Icons.pause_rounded,
                                     ),
+                                    color: Theme.of(context).iconTheme.color,
                                   )
                                 : IconButton(
                                     tooltip: 'Play',
@@ -734,6 +742,7 @@ class ControlButtons extends StatelessWidget {
                                     icon: const Icon(
                                       Icons.play_arrow_rounded,
                                     ),
+                                    color: Theme.of(context).iconTheme.color,
                                   ))
                       else
                         Center(
@@ -778,6 +787,7 @@ class ControlButtons extends StatelessWidget {
                 icon: const Icon(Icons.skip_next_rounded),
                 iconSize: miniplayer ? 24.0 : 45.0,
                 tooltip: 'Skip Next',
+                color: Theme.of(context).iconTheme.color,
                 onPressed: queueState.hasNext ? audioHandler.skipToNext : null,
               );
             },
@@ -856,7 +866,7 @@ class NowPlayingStream extends StatelessWidget {
                     audioHandler.removeQueueItemAt(index);
                   },
                   child: ListTileTheme(
-                    selectedColor: Theme.of(context).accentColor,
+                    selectedColor: Theme.of(context).colorScheme.secondary,
                     child: ListTile(
                       contentPadding:
                           const EdgeInsets.only(left: 16.0, right: 10.0),
@@ -908,7 +918,9 @@ class NowPlayingStream extends StatelessWidget {
                                       'album_id':
                                           queue[index].extras?['album_id'],
                                       'subtitle':
-                                          queue[index].extras?['subtitle']
+                                          queue[index].extras?['subtitle'],
+                                      'perma_url':
+                                          queue[index].extras?['perma_url'],
                                     })
                                   ],
                                 )
@@ -943,7 +955,9 @@ class NowPlayingStream extends StatelessWidget {
                                         textAlign: TextAlign.start,
                                         style: TextStyle(
                                           fontSize: 8.0,
-                                          color: Theme.of(context).accentColor,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -1109,24 +1123,23 @@ class _ArtWorkWidgetState extends State<ArtWorkWidget> {
                                   final String lyrics = snapshot.data ?? '';
                                   if (lyrics == '') {
                                     return EmptyScreen().emptyScreen(
-                                        context,
-                                        0,
-                                        ':( ',
-                                        100.0,
-                                        'Lyrics',
-                                        60.0,
-                                        'Not Available',
-                                        20.0);
+                                      context,
+                                      0,
+                                      ':( ',
+                                      100.0,
+                                      'Lyrics',
+                                      60.0,
+                                      'Not Available',
+                                      20.0,
+                                      useWhite: true,
+                                    );
                                   }
                                   return SelectableText(
                                     lyrics,
                                     textAlign: TextAlign.center,
                                   );
                                 }
-                                return CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Theme.of(context).accentColor),
-                                );
+                                return const CircularProgressIndicator();
                               })
                           : widget.mediaItem.extras?['has_lyrics'] == 'true'
                               ? FutureBuilder(
@@ -1143,10 +1156,7 @@ class _ArtWorkWidgetState extends State<ArtWorkWidget> {
                                         textAlign: TextAlign.center,
                                       );
                                     }
-                                    return CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Theme.of(context).accentColor),
-                                    );
+                                    return const CircularProgressIndicator();
                                   })
                               : ValueListenableBuilder(
                                   valueListenable: done,
@@ -1162,16 +1172,14 @@ class _ArtWorkWidgetState extends State<ArtWorkWidget> {
                                                 'Lyrics',
                                                 60.0,
                                                 'Not Available',
-                                                20.0)
+                                                20.0,
+                                                useWhite: true,
+                                              )
                                             : Text(
                                                 lyrics['lyrics'].toString(),
                                                 textAlign: TextAlign.center,
                                               )
-                                        : CircularProgressIndicator(
-                                            valueColor: AlwaysStoppedAnimation<
-                                                    Color>(
-                                                Theme.of(context).accentColor),
-                                          );
+                                        : const CircularProgressIndicator();
                                   }),
                     ),
                   ),
@@ -1304,11 +1312,13 @@ class _ArtWorkWidgetState extends State<ArtWorkWidget> {
                                                             activeTrackColor:
                                                                 Theme.of(
                                                                         context)
-                                                                    .accentColor,
+                                                                    .colorScheme
+                                                                    .secondary,
                                                             inactiveTrackColor:
                                                                 Theme.of(
                                                                         context)
-                                                                    .accentColor
+                                                                    .colorScheme
+                                                                    .secondary
                                                                     .withOpacity(
                                                                         0.4),
                                                             trackShape:
@@ -1406,12 +1416,14 @@ class NameNControls extends StatelessWidget {
                     ),
                   ),
 
+                  const SizedBox(height: 3.0),
+
                   /// Subtitle container
                   Text(
                     mediaItem.artist ?? 'Unknown',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w500),
+                        fontSize: 15, fontWeight: FontWeight.w400),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -1458,11 +1470,11 @@ class NameNControls extends StatelessWidget {
                       final shuffleModeEnabled = snapshot.data ?? false;
                       return IconButton(
                         icon: shuffleModeEnabled
-                            ? Icon(Icons.shuffle,
-                                color: Theme.of(context).accentColor)
-                            : const Icon(
-                                Icons.shuffle,
-                              ),
+                            ? const Icon(
+                                Icons.shuffle_rounded,
+                              )
+                            : Icon(Icons.shuffle_rounded,
+                                color: Theme.of(context).disabledColor),
                         tooltip: 'Shuffle',
                         onPressed: () async {
                           final enable = !shuffleModeEnabled;
@@ -1489,13 +1501,14 @@ class NameNControls extends StatelessWidget {
                           snapshot.data ?? AudioServiceRepeatMode.none;
                       const texts = ['None', 'All', 'One'];
                       final icons = [
+                        Icon(Icons.repeat_rounded,
+                            color: Theme.of(context).disabledColor),
                         const Icon(
                           Icons.repeat_rounded,
                         ),
-                        Icon(Icons.repeat_rounded,
-                            color: Theme.of(context).accentColor),
-                        Icon(Icons.repeat_one_rounded,
-                            color: Theme.of(context).accentColor),
+                        const Icon(
+                          Icons.repeat_one_rounded,
+                        ),
                       ];
                       const cycleModes = [
                         AudioServiceRepeatMode.none,
@@ -1532,7 +1545,8 @@ class NameNControls extends StatelessWidget {
                       'has_lyrics': mediaItem.extras?['has_lyrics'],
                       'release_date': mediaItem.extras!['release_date'],
                       'album_id': mediaItem.extras!['album_id'],
-                      'subtitle': mediaItem.extras!['subtitle']
+                      'subtitle': mediaItem.extras!['subtitle'],
+                      'perma_url': mediaItem.extras!['perma_url'],
                     })
                 ],
               ),
@@ -1557,14 +1571,21 @@ class NameNControls extends StatelessWidget {
                       child: NowPlayingStream(audioHandler));
                 });
           },
-          child: Text(
-            'Now Playing',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Theme.of(context).iconTheme.color,
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(
+                Icons.expand_less_rounded,
+              ),
+              Text(
+                'Now Playing',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                ),
+              ),
+            ],
           ),
         ),
       ],
