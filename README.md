@@ -1,3 +1,5 @@
+<img width="125px" src="https://github.com/Sangwan5688/BlackHole/blob/main/assets/icon-white-trans.png" align="center" />
+
 # BlackHole
 
 Awesome Music Player made with Flutter!
@@ -19,6 +21,7 @@ Or [Download from Github](https://github.com/Sangwan5688/BlackHole/releases)
 ## Translations
 
 - [Spanish :es:](/README.ES.md)
+- [Russian :ru:](/README.RU.md)
 
 ## Features
 
@@ -26,11 +29,12 @@ Or [Download from Github](https://github.com/Sangwan5688/BlackHole/releases)
 * Song, Album, Artist and Playlist Search
 * Language Specific Promoted Playlists
 * Trending Songs
+* Artist and Genre Radios
 * Support 15+ music languages
 * Local and Global Top Spotify songs
 * Add Songs to Favorite
 * Playlists support
-* Import Playlists from Spotify
+* Import Playlists from Spotify & YouTube
 * Import/Export Playlists as JSON File
 * Share Playlists
 * Sleep timer
@@ -39,16 +43,21 @@ Or [Download from Github](https://github.com/Sangwan5688/BlackHole/releases)
 * Listening history record
 * Dark mode / accent color
 * Custom Gradients and other Theme options
+* Supports Portrait as well as Landscape mode
 * Download for offline play (320kbps with ID3 tags)
 * Play Online as well as Offline Songs
+* Tag Editing Support
+* Trending Search Results
+* YouTube Search Support
+* Promoted Youtube Playlists
 * Play videos as audio
+* Auto Song Recommendations
+* Inbuilt Equalizer
+* Backup & Restore
 * Auto Update Check
 * Cache support
 * No Subscription
 * No Ads
-* YouTube Search Support
-* Promoted Youtube Playlists
-* Tag Editing Support
 
 and much more...
 Check it yourself :)
@@ -102,30 +111,6 @@ You can join our [Telegram Channel](https://t.me/blackhole_official) or [Telegra
 
 <a href="https://www.buymeacoffee.com/ankitsangwan" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
-# What's New
-
-## v1.10.1
-
-* Added Promoted YouTube playlists
-* Added option to save playlists
-* Add whole playlist to queue
-* Added basic Equalizer
-* Fixed some UI issues
-* Talkback Support (for visually impaired)
-* Improved performance
-* Added Spotify Import via links
-* Added Play next option
-* Added FFmpeg support to convert youtube 'weba' to 'aac' [Caused increase in app size :( ]
-* Replaced web-view with browser for Spotify login
-* Added offline search option
-* Migrated to null safety
-* Added option to download albums/playlists songs in a common folder
-* Added option to download youtube songs in a different folder
-* Completely removed firebase
-* Added option to enforce repeat mode
-* Minor UI changes
-* Fixed Download issue with some songs.
-* Fixed issue when skipped before loading.
-and much more :)
+## What's New
 
 To read full changelog visit the [wiki page](https://github.com/Sangwan5688/BlackHole/wiki/Changelog)
